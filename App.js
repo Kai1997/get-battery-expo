@@ -1,7 +1,8 @@
 import React from 'react';
 import * as Battery from 'expo-battery';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native';
 import ProgressCircle from 'react-native-progress-circle'
+let deviceWidth = Dimensions.get('window').width
 export default class App extends React.Component {
   constructor(props) {
     super(props);
@@ -13,33 +14,32 @@ export default class App extends React.Component {
   async componentDidMount() {
     let batteryLevel = await this._get();
     let b = await Battery.isLowPowerModeEnabledAsync();
-    console.log("3",b)
+    console.log("isLowPower",b)
     this.setState({ batteryLevel });
-    this._subscribe();
+    await this.getIntervalPin();
   }
   _bt = async () => {
     let batteryLevel = await this._get();
     this.setState({ batteryLevel });
   }
-  componentWillUnmount() {
-    this._unsubscribe();
+  getIntervalPin = async () => {
+    console.log("Vo day")
+    this.timer = setInterval(() => {
+      this._get().then(batteryLevel => {
+         this.setState({
+         batteryLevel
+       })
+      })
+      
+    }, 3000);
   }
   _get = async () => {
     let a = await Battery.getBatteryLevelAsync();
     return a;
   }
-  
-
-  _subscribe = () => {
-    this._subscription = Battery.addBatteryLevelListener(({ batteryLevel }) => {
-      this.setState({ batteryLevel });
-    });
-  };
-  _unsubscribe = () => {
-    this._subscription && this._subscription.remove();
-    this._subscription = null;
-  };
-
+  componentWillUnmount() {
+    clearInterval(this.timer);
+  }
   render() {
     let test, test2;
     if (this.state.batteryLevel) {
@@ -51,7 +51,7 @@ export default class App extends React.Component {
             color="#3399FF"
             shadowColor="#999"
             bgColor="#fff"
-            outerCircleStyle ={{width: 100}}
+            // outerCircleStyle ={{width: 100}}
         >
             <Text style={styles.pin}>{a}</Text>
         </ProgressCircle>
@@ -68,12 +68,12 @@ export default class App extends React.Component {
       <View style={styles.container}>
          {test}
           {test2}
-         <TouchableOpacity
+         {/* <TouchableOpacity
           style={styles.button}
           onPress={this._bt}
         >
           <Text> Nhấn </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     );
   }
